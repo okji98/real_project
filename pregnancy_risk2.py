@@ -358,50 +358,49 @@ with tab4:
         proba = model.predict_proba(input_scaled)[0]
 
         # BMI 기반 위험도를 반영한 확률 조정
-        if prediction != model_prediction:
-            st.info(f"BMI({bmi:.1f})가 정상 범위를 벗어나 위험도가 조정되었습니다.")
+        st.info(f"BMI({bmi:.1f})가 정상 범위를 벗어나 위험도가 조정되었습니다.")
+            
+        proba_df = pd.DataFrame({
+                '위험도': risk_labels,
+                '확률': proba * 100
+            })
+            
+        # 확률 시각화
+        fig = px.bar(proba_df, x='위험도', y='확률', color='위험도',
+                        color_discrete_map={'저위험': 'green', '중위험': 'orange', '고위험': 'red'})
+        fig.update_layout(title='위험도 예측 확률')
+        st.plotly_chart(fig, use_container_width=True)
+            
+        # 위험 요소 분석 및 권장 사항
+        st.subheader("위험 요소 분석 및 권장 사항")
                 
-            proba_df = pd.DataFrame({
-                    '위험도': risk_labels,
-                    '확률': proba * 100
-                })
-                
-            # 확률 시각화
-            fig = px.bar(proba_df, x='위험도', y='확률', color='위험도',
-                            color_discrete_map={'저위험': 'green', '중위험': 'orange', '고위험': 'red'})
-            fig.update_layout(title='위험도 예측 확률')
-            st.plotly_chart(fig, use_container_width=True)
-                
-            # 위험 요소 분석 및 권장 사항
-            st.subheader("위험 요소 분석 및 권장 사항")
-                
-            if prediction == 0:  # 저위험
-                st.success("현재 산모의 건강 상태는 양호합니다. 정기적인 검진을 계속 받으시기 바랍니다.")
-                st.markdown("""
-                **주요 권장사항**:
-                - 정기적인 산전 검진 유지
-                - 균형 잡힌 식단 섭취
-                - 적절한 운동 유지
-                - 충분한 휴식과 수면
-                """)
-            elif prediction == 1:  # 중위험
-                st.warning("일부 건강 지표에 주의가 필요합니다. 더 자주 검진을 받고 의사의 조언을 따르세요.")
-                st.markdown("""
-                **주요 권장사항**:
-                - 검진 주기 단축 (2주마다 검진 권장)
-                - 혈압 및 혈당 정기적 모니터링
-                - 스트레스 관리 및 충분한 휴식
-                - 의사가 권장하는 식이요법 준수
-                """)
-            else:  # 고위험
-                st.error("여러 건강 지표에서 위험 신호가 감지되었습니다. 즉시 의료진과 상담하시기 바랍니다.")
-                st.markdown("""
-                **주요 권장사항**:
-                - 즉시 전문 의료진 상담
-                - 필요시 입원 치료 고려
-                - 24시간 건강 상태 모니터링
-                - 모든 활동 전 의사와 상담
-                - 응급상황 대비 계획 수립
-                """)
+        if prediction == 0:  # 저위험
+            st.success("현재 산모의 건강 상태는 양호합니다. 정기적인 검진을 계속 받으시기 바랍니다.")
+            st.markdown("""
+            **주요 권장사항**:
+            - 정기적인 산전 검진 유지
+            - 균형 잡힌 식단 섭취
+            - 적절한 운동 유지
+            - 충분한 휴식과 수면
+            """)
+        elif prediction == 1:  # 중위험
+            st.warning("일부 건강 지표에 주의가 필요합니다. 더 자주 검진을 받고 의사의 조언을 따르세요.")
+            st.markdown("""
+            **주요 권장사항**:
+            - 검진 주기 단축 (2주마다 검진 권장)
+            - 혈압 및 혈당 정기적 모니터링
+            - 스트레스 관리 및 충분한 휴식
+            - 의사가 권장하는 식이요법 준수
+            """)
+        else:  # 고위험
+            st.error("여러 건강 지표에서 위험 신호가 감지되었습니다. 즉시 의료진과 상담하시기 바랍니다.")
+            st.markdown("""
+            **주요 권장사항**:
+            - 즉시 전문 의료진 상담
+            - 필요시 입원 치료 고려
+            - 24시간 건강 상태 모니터링
+            - 모든 활동 전 의사와 상담
+            - 응급상황 대비 계획 수립
+            """)
     else:
         st.info("위험도를 예측하려면 사이드바에서 데이터를 입력 후, '위험도 예측' 버튼을 클릭 해주세요.")   
