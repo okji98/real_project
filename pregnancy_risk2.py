@@ -34,7 +34,7 @@ st.markdown("""
 # 데이터 로드
 @st.cache_data
 def load_data():
-    df = pd.read_csv('Updated_Maternal_Health_Risk_Data.csv')
+    df = pd.read_csv('Updated_Maternal_Health_Risk_Data_add2.csv')
     # 위험도를 숫자로 변환
     risk_mapping = {'low risk': 0, 'mid risk': 1, 'high risk': 2}
     df['RiskLevel_num'] = df['RiskLevel'].map(risk_mapping)
