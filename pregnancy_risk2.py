@@ -12,7 +12,6 @@ import lime
 import lime.lime_tabular
 
 # 한글 설정
-import matplotlib.pyplot as plt
 plt.rc('font', family='Malgun Gothic')
 plt.rc('axes', unicode_minus=False)  # 마이너스 기호 깨짐 방지
 
@@ -34,7 +33,7 @@ st.markdown("""
 # 데이터 로드
 @st.cache_data
 def load_data():
-    df = pd.read_csv('Updated_Maternal_Health_Risk_Data_add2.csv')
+    df = pd.read_csv('Updated_Maternal_Health_Risk_Data_add.csv')
     # 위험도를 숫자로 변환
     risk_mapping = {'low risk': 0, 'mid risk': 1, 'high risk': 2}
     df['RiskLevel_num'] = df['RiskLevel'].map(risk_mapping)
@@ -96,7 +95,7 @@ with tab2:
         st.pyplot(fig)
     
     st.markdown("""
-    **설명**: 연령 분포를 보면, 대부분의 산모가 20대 초반에 집중되어 있으며, 두 번째는 40-50대에서 나타납니다.
+    **설명**: 연령 분포를 보면, 대부분의 산모가 20대 초중반에 집중되어 있으며, 두 번째는 30~40대에서 나타납니다.
     고령 산모일수록 고위험 그룹에 속할 가능성이 높아지는 경향이 있습니다.
     """)
     
@@ -128,13 +127,13 @@ with tab2:
     # 시각화 3: 체온과 위험도
     # 체온(°F)을 섭씨(°C)로 변환
     df_temp = df.copy()
-    df_temp['BodyTemp_C'] = (df_temp['BodyTemp'] - 32) * 5 / 9
+    # df_temp['BodyTemp_C'] = (df_temp['BodyTemp'] - 32) * 5 / 9
 
     st.subheader("3. 체온과 위험도")
 
     # 그래프 생성
     fig, ax = plt.subplots(figsize=(20, 6))
-    sns.kdeplot(data=df_temp, x='BodyTemp_C', hue='RiskLevel', fill=True, 
+    sns.kdeplot(data=df_temp, x='BodyTempC', hue='RiskLevel', fill=True, 
                 palette={'low risk': 'green', 'mid risk': 'orange', 'high risk': 'red'})
 
     # 그래프 제목 및 레이블 설정
@@ -197,10 +196,10 @@ with tab3:
     st.header("모델 예측 결과")
     st.write("""
 산모의 건강 데이터를 기반으로 위험도를 예측합니다.
-- 정확도: 약 70%
-- 저위험 예측 정확도: 65%
-- 중위험 예측 정확도: 66%
-- 고위험 예측 정확도: 86%
+- 정확도: 약 96%
+- 저위험 예측 정확도: 95%
+- 중위험 예측 정확도: 95%
+- 고위험 예측 정확도: 98%
 """)
     # 모델 학습
     @st.cache_resource
@@ -282,22 +281,22 @@ with tab3:
     st.markdown("""
     **모델 설명**:
     특성 중요도를 통해, 각 항목들이 미치는 영향을 파악 할 수 있습니다.
-    이 중 가장 영향이 큰 것으로 혈당이 가장 중요한 요소이고,
                 
-    수축기 혈압, 이완기 혈압, 나이, BMI 등이 위험도 예측에 영향을 끼치는 요소임을 확인 할 수 있습니다.
+    이 중 가장 영향이 큰 것으로, 체질량 지수가 가장 중요한 요소입니다.
+                
+    이후, 나이, 혈당, 혈압 등이 위험도 예측에 영향을 끼치는 요소임을 확인 할 수 있습니다.
     """)
 
 # 사이드바에서 데이터 입력 받기
-st.sidebar.header("사용자 데이터 입력")
+st.sidebar.header("사용자 데이터 입력:clipboard:")
 
 # 사이드바에서 데이터 입력받기
-age = st.sidebar.number_input("나이", min_value=20, max_value=70, value=25)
+age = st.sidebar.number_input("나이", min_value=15, max_value=60, value=25)
 systolic_bp = st.sidebar.number_input("수축기 혈압 (mmHg)", min_value=70, max_value=180, value=120)
-diastolic_bp = st.sidebar.number_input("이완기 혈압 (mmHg)", min_value=40, max_value=120, value=80)
-bs = st.sidebar.number_input("혈당 (mmol/L)", min_value=5.0, max_value=20.0, value=7.0, step=0.1)
-body_temp = st.sidebar.number_input("체온 (°C)", min_value=35.0, max_value=41.0, value=36.5, step=0.1) # 섭씨로 입력하기
-body_temp_c = (body_temp * 9/5) + 32  # 화씨 -> 섭씨 변환
-heart_rate = st.sidebar.number_input("심박수 (bpm)", min_value=60, max_value=100, value=75)
+diastolic_bp = st.sidebar.number_input("이완기 혈압 (mmHg)", min_value=70, max_value=120, value=80)
+bs = st.sidebar.number_input("혈당 (mg/dL)", min_value=70, max_value=350, value=100, step=1)
+body_temp = st.sidebar.number_input("체온 (°C)", min_value=35.0, max_value=41.0, value=36.5, step=0.1)
+heart_rate = st.sidebar.number_input("심박수 (bpm)", min_value=60, max_value=100, value=80)
 height = st.sidebar.number_input("키 (cm)", min_value=140.0, max_value=190.0, value=155.0, step=0.1)
 weight = st.sidebar.number_input("체중 (kg)", min_value=30.0, max_value=100.0, value=45.0, step=0.1)
 bmi = weight / ((height/100) ** 2)
@@ -313,13 +312,13 @@ if st.sidebar.button("위험도 예측"):
         'Age': [age],
         'SystolicBP': [systolic_bp],
         'DiastolicBP': [diastolic_bp],
-        'BS': [bs],
-        'BodyTemp': [body_temp_c],
         'HeartRate': [heart_rate],
         'Height(cm)': [height],
         'Weight(kg)': [weight],
         'BMI': [bmi],
-        'GestationalAge': [gestational_age]
+        'GestationalAge': [gestational_age],
+        'BodyTempC': [body_temp],
+        'BloodSugar': [bs]
     })
 
     # BMI 기반 위험도 평가
@@ -328,9 +327,9 @@ if st.sidebar.button("위험도 예측"):
         bmi_risk = 2  # 고위험
     elif bmi < 18.5:  # 저체중
         bmi_risk = 1  # 중위험
-    elif 18.5 <= bmi < 23.0:
+    elif 18.5 <= bmi < 24.5:
         bmi_risk = 0  # 저위험
-    elif 23.0 <= bmi < 25.0:
+    elif 24.5 <= bmi < 25.0:
         bmi_risk = 1  # 중위험
     elif bmi >= 27:  # 비만
         bmi_risk = 2  # 고위험
@@ -345,12 +344,11 @@ if st.sidebar.button("위험도 예측"):
     prediction = max(model_prediction, bmi_risk)
     
 with tab4:
-    st.header('위험도 예측')
+    st.header('위험도 예측 결과')
     # 예측 결과 표시
     risk_labels = ['저위험', '중위험', '고위험']
     risk_colors = ['green', 'orange', 'red']
         
-    st.markdown("### 예측 결과")
     if prediction is not None:
         st.markdown(f"<h1 style='text-align: center; color: {risk_colors[prediction]};'>{risk_labels[prediction]}</h1>", unsafe_allow_html=True)
         
@@ -358,49 +356,51 @@ with tab4:
         proba = model.predict_proba(input_scaled)[0]
 
         # BMI 기반 위험도를 반영한 확률 조정
-        st.info(f"BMI({bmi:.1f})가 정상 범위를 벗어나 위험도가 조정되었습니다.")
-            
+        if prediction != model_prediction:
+            st.info(f"BMI({bmi:.1f})가 정상 범위를 벗어나 위험도가 조정되었습니다.")
+                
         proba_df = pd.DataFrame({
-                '위험도': risk_labels,
-                '확률': proba * 100
-            })
-            
-        # 확률 시각화
+                    '위험도': risk_labels,
+                    '확률': proba * 100
+        })
+                
+            # 확률 시각화
         fig = px.bar(proba_df, x='위험도', y='확률', color='위험도',
-                        color_discrete_map={'저위험': 'green', '중위험': 'orange', '고위험': 'red'})
+                            color_discrete_map={'저위험': 'green', '중위험': 'orange', '고위험': 'red'})
         fig.update_layout(title='위험도 예측 확률')
         st.plotly_chart(fig, use_container_width=True)
-            
-        # 위험 요소 분석 및 권장 사항
+                
+            # 위험 요소 분석 및 권장 사항
         st.subheader("위험 요소 분석 및 권장 사항")
                 
         if prediction == 0:  # 저위험
             st.success("현재 산모의 건강 상태는 양호합니다. 정기적인 검진을 계속 받으시기 바랍니다.")
             st.markdown("""
-            **주요 권장사항**:
-            - 정기적인 산전 검진 유지
-            - 균형 잡힌 식단 섭취
-            - 적절한 운동 유지
-            - 충분한 휴식과 수면
-            """)
+                **주요 권장사항**:
+                - 정기적인 산전 검진 유지
+                - 균형 잡힌 식단 섭취
+                - 적절한 운동 유지
+                - 충분한 휴식과 수면
+                """)
         elif prediction == 1:  # 중위험
             st.warning("일부 건강 지표에 주의가 필요합니다. 더 자주 검진을 받고 의사의 조언을 따르세요.")
             st.markdown("""
-            **주요 권장사항**:
-            - 검진 주기 단축 (2주마다 검진 권장)
-            - 혈압 및 혈당 정기적 모니터링
-            - 스트레스 관리 및 충분한 휴식
-            - 의사가 권장하는 식이요법 준수
-            """)
+                **주요 권장사항**:
+                - 검진 주기 단축 (2주마다 검진 권장)
+                - 혈압 및 혈당 정기적 모니터링
+                - 체중 관리를 위한 적절한 운동 필요
+                - 스트레스 관리 및 충분한 휴식
+                - 의사가 권장하는 식이요법 준수
+                """)
         else:  # 고위험
             st.error("여러 건강 지표에서 위험 신호가 감지되었습니다. 즉시 의료진과 상담하시기 바랍니다.")
             st.markdown("""
-            **주요 권장사항**:
-            - 즉시 전문 의료진 상담
-            - 필요시 입원 치료 고려
-            - 24시간 건강 상태 모니터링
-            - 모든 활동 전 의사와 상담
-            - 응급상황 대비 계획 수립
-            """)
+                **주요 권장사항**:
+                - 즉시 전문 의료진 상담
+                - 필요 시 입원 치료 고려
+                - 24시간 건강 상태 모니터링
+                - 모든 활동 전 의사와 상담
+                - 응급상황 대비 계획 수립
+                """)
     else:
         st.info("위험도를 예측하려면 사이드바에서 데이터를 입력 후, '위험도 예측' 버튼을 클릭 해주세요.")   
